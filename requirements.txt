@@ -1,0 +1,6 @@
+django
+mysqlclient
+scikit-learn
+matplotlib
+seaborn
+pandas 

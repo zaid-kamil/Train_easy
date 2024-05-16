@@ -1,0 +1,43 @@
+{% extends 'layout/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block css %}
+<style>
+    header {
+        background-color: rgb(0, 0, 100);
+    }
+</style>{% endblock %}
+
+{% block content %}
+<section class="my-5">
+    <div class="container my-5">
+        <div class="row">
+            {% for model in models %}
+            <div class="col-md-4">
+                <div class="card">
+                    
+                    {% if model.plot %}
+                    <img src="{{model.plot}}" class="card-img-top" alt="...">
+                    {% endif %}
+                        
+                    <div class="card-body">
+                        <h5 class="card-title">{{ model.training_time }} ms</h5>
+                        <p class="card-text">{{ model.training_accuracy}} Train Score </p>
+                        <p class="card-text">{{ model.testing_accuracy }} Test Score</p>
+                       <!-- delete  -->
+                       <a href="{% url 'delete_model' model.id %}" class="btn btn-danger">Delete</a>
+                       <!-- download -->
+                          <a href="{% url 'download_model' model.id %}" class="btn btn-primary">Download</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12">
+                <h1 class="text-center">No models found</h1>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

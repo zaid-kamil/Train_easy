@@ -1,0 +1,373 @@
+{% extends 'layout/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="https://unpkg.com/bs-brain@2.0.3/tutorials/timelines/timeline-1/assets/css/timeline-1.css">
+<script src="https://unpkg.com/htmx.org@1.9.12"
+    integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+    crossorigin="anonymous"></script>
+<style>
+    header {
+        background-color: rgb(0, 0, 100);
+    }
+</style>{% endblock %}
+
+{% block content %}
+<section class="my-5">
+    {% include 'components/steps.html' %}
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h1 class="text-center my-2">Finalize</h1>
+                        <section class="bsb-timeline-1 py-1 py-xl-8">
+                            <div class="container">
+                                <div class="row justify-content-center">
+                                    <div class="col-10 col-md-8 col-xl-6">
+                                        <ul class="timeline">
+                                            <li class="timeline-item">
+                                                <div class="timeline-body">
+                                                    <div class="timeline-content">
+                                                        <div class="card border-0">
+                                                            <div class="card-body p-0">
+                                                                <h5 class="card-subtitle text-secondary mb-1">Step 1
+                                                                </h5>
+                                                                <h2 class="card-title mb-3">Upload Dataset</h2>
+
+                                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                                                {{dataset.name}} [{{dataset.file}}]
+                                                                <div class="table-responsive">
+                                                                    {{table|safe}}
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+
+                                            <li class="timeline-item">
+                                                <div class="timeline-body">
+                                                    <div class="timeline-content">
+                                                        <div class="card border-0">
+                                                            <div class="card-body p-0">
+                                                                <h5 class="card-subtitle text-secondary mb-1">Step 2
+                                                                </h5>
+                                                                <h2 class="card-title mb-3">Selected Preprocessing</h2>
+                                                                <p class="card-text m-0">
+                                                                    <!-- Some borders are removed -->
+                                                                <ul class="list-group list-group-flush">
+                                                                    <li class="list-group-item">
+
+                                                                        {% if preprocesses.imputation %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Imputation
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if preprocesses.encoding %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Encoding
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if preprocesses.normalization %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Normalization
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if preprocesses.feature_selection %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Feature Selection
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if preprocesses.pca %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        PCA
+                                                                    </li>
+                                                                </ul>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+
+                                            <li class="timeline-item">
+                                                <div class="timeline-body">
+                                                    <div class="timeline-content">
+                                                        <div class="card border-0">
+                                                            <div class="card-body p-0">
+                                                                <h5 class="card-subtitle text-secondary mb-1">Step 3
+                                                                </h5>
+                                                                <h2 class="card-title mb-3"> Selected algorithms</h2>
+                                                                <p class="card-text m-0">
+                                                                    <!-- Some borders are removed -->
+                                                                <ul class="list-group list-group-flush">
+                                                                    <li class="list-group-item">
+
+                                                                        {% if algorithms.linear %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        linear
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if algorithms.decision_Tree %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        decision_Tree
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if algorithms.random_Forest %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        random_Forest
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if algorithms.support_Vector_Machines %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        support_Vector_Machines
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if algorithms.naive_Bayes %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        naive_Bayes
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if algorithms.knn %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        knn
+                                                                </ul>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+
+                                            <li class="timeline-item">
+                                                <div class="timeline-body">
+                                                    <div class="timeline-content">
+                                                        <div class="card border-0">
+                                                            <div class="card-body p-0">
+                                                                <h5 class="card-subtitle text-secondary mb-1">Step 4
+                                                                </h5>
+                                                                <h2 class="card-title mb-3">Selected metrics</h2>
+                                                                <p class="card-text m-0">
+
+                                                                    <!-- Some borders are removed -->
+                                                                <ul class="list-group list-group-flush">
+                                                                    <li class="list-group-item">
+
+                                                                        {% if metrics.accuracy %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Accuracy
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.mse %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Mse
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.rmse %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Rmse
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.mae %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Mae
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.roc_auc %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Roc_auc
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.precision %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Precision
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.recall %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        Recall
+                                                                    </li>
+                                                                    <li class="list-group-item">
+                                                                        {% if metrics.f1 %}
+                                                                        <i
+                                                                            class="bi bi-check-circle-fill text-success"></i>
+                                                                        {% else %}
+                                                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                                                        {% endif %}
+                                                                        F1
+                                                                    </li>
+                                                                </ul>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="timeline-item">
+                                                <div class="timeline-body">
+                                                    <div class="timeline-content">
+                                                        <div class="card border-0">
+                                                            <div class="card-body p-0">
+                                                                <h5 class="card-subtitle text-secondary mb-1">Step 5
+                                                                </h5>
+                                                                <h2 class="card-title mb-3">Training</h2>
+                                                                <p class="card-text m-0">
+
+                                                                    <!-- Some borders are removed -->
+                                                                <ul class="list-group list-group-flush">
+                                                                    <li class="list-group-item">
+                                                                        Split Size
+                                                                        <b>{% widthratio training.split 1 100 %}
+                                                                            % split</b>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <form hx-post="{% url 'execute' %}" htmx-swap="outerHTML"
+                                                    htmx-indicator=".loader" class="ms-2">
+                                                    {% csrf_token %}
+                                                    <div class="d-grid py-5">
+                                                        <!-- target column -->
+                                                        <div class="mb-3">
+                                                            <label for="target" class="form-label">Target for Training
+                                                                (Y) </label>
+                                                            <select class="form-select form-select-lg" name="target"
+                                                                id="target" required>
+                                                                <option selected disabled>Select one</option>
+
+                                                                {% for name in columns %}
+                                                                <option value="{{name}}">{{name}}</option>
+                                                                {% endfor %}
+
+                                                            </select>
+                                                            <small class="form-text text-warning">
+                                                                Choosing the column will decide the type of machine
+                                                                learning type (aka <b>classification</b> or
+                                                                <b>regression</b>). If you are planning to do regression
+                                                                then choose the column with continuous values, or if you
+                                                                are planning to do classification then choose the column
+                                                                with categorical values.
+
+                                                            </small>
+                                                        </div>
+
+                                                        <button class="btn btn-primary" type="submit">
+                                                            Train
+                                                            Model
+                                                            <div class="d-none loader">
+                                                                <span class="spinner-border spinner-border-sm"
+                                                                    role="status" aria-hidden="true"></span>
+                                                                Loading...
+                                                            </div>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script>
+    const form = document.querySelector('form');
+    const submit = form.querySelector('button[type="submit"]');
+    // on hx-post start update the button with spinner
+    form.addEventListener('hx-post', () => {
+        submit.classList.add('disabled');
+        submit.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Loading...
+        `;
+    });
+</script>
+{% endblock js %}

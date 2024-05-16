@@ -1,0 +1,55 @@
+<header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container-fluid d-flex align-items-center justify-content-between">
+
+        <a href="index.html" class="logo d-flex align-items-center  me-auto me-lg-0">
+            <!-- Uncomment the line below if you also wish to use an image logo -->
+            <!-- <img src="/static/img/logo.png" alt=""> -->
+
+
+            <h1 style="color: white;">TRAIN EASY</h1>
+
+        </a>
+
+
+        <nav id="navbar" class="navbar">
+            <ul>
+                <li><a href="{% url 'home' %}" class="active">Home</a></li>
+                <li><a href="{% url 'about' %}">About</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'upload_dataset' %}">Train</a></li>
+                <li><a href="{% url 'my_models' %}">Models</a></li>
+
+                {% endif %}
+
+                <li><a href="services.html">Services</a></li>
+                <li><a href="contact.html">Contact</a></li>
+
+                {% if not user.is_authenticated %}
+                <li class="dropdown"><a href="#"><span>Account</span> <i
+                            class="bi bi-chevron-down dropdown-indicator"></i></a>
+                    <ul>
+                        <li> <a href="{% url 'clogin' %}">Login</a></li>
+                        <li><a href="{% url 'cregister' %}">Register</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="dropdown">
+                    <a href="#">
+                        <span>
+                            <i class="bi bi-person-circle"></i>
+                        </span>
+                        <i class="bi bi-chevron-down dropdown-indicator"></i>
+                    </a>
+                    <ul>
+                        <li> <a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li> <a href="{% url 'create_profile' %}">Profile</a></li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+
+
+            </ul>
+        </nav><!-- .navbar -->
+
+</header><!-- End Header -->

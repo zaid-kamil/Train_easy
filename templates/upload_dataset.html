@@ -1,0 +1,57 @@
+{% extends 'layout/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block css %}
+<style>
+    header {
+        background-color: rgb(0, 0, 100);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="my-5">
+    {% include 'components/steps.html' %}
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h3>Upload Dataset</h3>
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{form|crispy}}
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row my-3">
+            <div class="col-md-6 mx-auto">
+                <!-- Hover added -->
+
+                <ul class="list-group list-group-flush">
+                    {% for item in my_datasets %}
+                    <!-- Some borders are removed -->
+                    <li class="list-group-item">
+                        <form method="post" class="d-flex justify-content-between align-items-center">
+                            <h5>{{item.name}}</h5>
+                            {% csrf_token %}
+                            <input type="hidden" name="dataset_id" value="{{item.id}}">
+                            <button type="submit" class="btn btn-primary">Select</button>
+                        </form>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item">No datasets available</li>
+                    {% endfor %}
+                </ul>
+
+
+            </div>
+        </div>
+    </div>
+
+</section>
+{% endblock %}

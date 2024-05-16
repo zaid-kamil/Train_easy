@@ -1,0 +1,32 @@
+{% extends 'layout/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block css %}
+<style>
+    header {
+        background-color: rgb(0, 0, 100);
+    }
+</style>{% endblock %}
+
+{% block content %}
+<section class="my-5">
+    {% include 'components/steps.html' %}
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h1>Training</h1>
+                        <form method="POST"  enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{form|crispy}}
+                            <button type="submit" class="btn btn-primary">Show Pipeline</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'layout/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block css %}
+<style>
+    header {
+        background-color: rgb(0, 0, 100);
+    }
+</style>{% endblock %}
+
+{% block content %}
+<section class="my-5">
+    {% include 'components/steps.html' %}
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h1>Algorithm Selection</h1>
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{form|crispy}}
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mx-auto">
+                <div class="mb-3">
+                    <h4>Column in dataset</h4>
+                    {% for name in columns %}
+                    <!-- display badges -->
+                    <span class="badge bg-primary">{{name}}</span>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    <h4>Preview of dataset</h4>
+                    <div class="table-responsive">
+                        {{df|safe}}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h4>Missing Values</h4>
+                    {{missing_values|safe}}
+                </div>
+                <div class="mb-3">
+                    <h4>Column Datatypes</h4>
+                    {{columns_dtype|safe}}
+                </div>
+                <!-- preprocessing selected -->
+                <div class="mb-3">
+                    <h4>Preprocessing options</h4>
+                    {% if preprocesses.imputation %}
+                    <span class="badge bg-dark fs-3">Imputation</span>
+                    {% endif %}
+                    {% if preprocesses.normalization %}
+                    <span class="badge bg-dark fs-3">Scaling</span>
+                    {% endif %}
+                    {% if preprocesses.encoding %}
+                    <span class="badge bg-dark fs-3">Encoding</span>
+                    {% endif %}
+                    {% if preprocesses.feature_selection %}
+                    <span class="badge bg-dark fs-3">Feature Selection</span>
+                    {% endif %}
+                    {% if preprocesses.pca %}
+                    <span class="badge bg-dark fs-3">PCA (dimensionality reduction)</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+</section>
+{% endblock %}
