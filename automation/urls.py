@@ -8,6 +8,8 @@ urlpatterns = [
     path('algorithm/selection', views.algorithm_selection, name='algorithm_selection'),
     path('metric/selection', views.metric_selection, name='metric_selection'),
     path('training', views.training, name='training'),
+    # select training
+    path('training/<int:pk>', views.select_training, name='select_training'),
     path('finalize', views.finalize_pipeline, name='finalize'),
     path('execute', views.execute_pipeline, name='execute'),
     path('my_models', views.my_models, name='my_models'),

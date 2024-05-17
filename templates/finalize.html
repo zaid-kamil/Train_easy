@@ -302,8 +302,7 @@
                                                 </div>
                                             </li>
                                             <li>
-                                                <form hx-post="{% url 'execute' %}" htmx-swap="outerHTML"
-                                                    htmx-indicator=".loader" class="ms-2">
+                                                <form class="ms-2 form1">
                                                     {% csrf_token %}
                                                     <div class="d-grid py-5">
                                                         <!-- target column -->
@@ -333,11 +332,7 @@
                                                         <button class="btn btn-primary" type="submit">
                                                             Train
                                                             Model
-                                                            <div class="d-none loader">
-                                                                <span class="spinner-border spinner-border-sm"
-                                                                    role="status" aria-hidden="true"></span>
-                                                                Loading...
-                                                            </div>
+
                                                         </button>
                                                     </div>
                                                 </form>
@@ -359,15 +354,89 @@
 
 {% block js %}
 <script>
+    modal_snippet = `
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Model Training</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a type="button" class="btn btn-success"  href="/automation/my_models">View Models</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+</script>
+<script>
     const form = document.querySelector('form');
     const submit = form.querySelector('button[type="submit"]');
-    // on hx-post start update the button with spinner
-    form.addEventListener('hx-post', () => {
-        submit.classList.add('disabled');
-        submit.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Loading...
-        `;
+    const loader_snipper = `
+    <i class="spinner-border spinner-border-sm"></i>
+    `;
+
+
+
+    // on form submit
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submit.innerHTML = loader_snipper;
+        submit.disabled = true;
+
+        // display the modal
+        document.body.insertAdjacentHTML('beforeend', modal_snippet);
+        const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+        modal.show();
+
+        const formData = new FormData(form);
+        fetch("{% url 'execute' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{csrf_token}}'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.status === 'success') {
+                    // display the graph and result in an modal popup 
+                    const img = `<img src="${data.graph}" class="img-fluid" alt="graph">`;
+                    console.log(data)
+                    const content = `
+                    <p class="lead">MAE: ${data.results.mae}</p>
+                    <p class="lead">MSE: ${data.results.mse}</p>
+                    <p class="lead">RMSE: ${data.results.rmse}</p>
+                    <p class="lead">Test Accuracy: ${data.results.test_accuracy}</p>
+                    <p class="lead">Train Accuracy: ${data.results.train_accuracy}</p>
+                    <p class="lead">model path: 
+                        <a href="/${data.best_model}" target="_blank">${data.best_model}</a>
+                    </p>
+                    `;
+                    document.querySelector('.modal-body').innerHTML = `<div class="container">${img}${content}</div>`;
+                    submit.innerHTML = 'Train Model';
+                    submit.disabled = false;
+                } else {
+                    submit.innerHTML = 'Train Model';
+                    submit.disabled = false;
+                    console.error('Error:', data.error);
+                    const content = `<p class="lead text-danger">${data.error}</p>`;
+                    document.querySelector('.modal-body').innerHTML = `<div class="container">${content}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Something went wrong');
+                submit.innerHTML = 'Train Model';
+                submit.disabled = false;
+            });
     });
 </script>
 {% endblock js %}

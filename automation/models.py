@@ -61,6 +61,7 @@ class Training(models.Model):
     metric = models.ForeignKey(MetricSelection, on_delete=models.CASCADE)
     algo = models.ForeignKey(AlgorithmSelection, on_delete=models.CASCADE)
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    preprocessing = models.ForeignKey(Preprocessing, on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     training_time = models.FloatField(default=0.0)
     training_accuracy = models.FloatField(default=0.0)
@@ -68,7 +69,7 @@ class Training(models.Model):
     split = models.FloatField(default=.2, help_text="default 80% train - 20% test split")
     random_state = models.IntegerField(default=42, help_text="random state for splitting the data")
     model_path = models.FileField(upload_to='models/', help_text="path to save the model",blank=True, null=True)
-    
+    is_completed = models.BooleanField(default=False)
     def __str__(self):
         return f'{self.dataset.name} - {self.created_at}'
     

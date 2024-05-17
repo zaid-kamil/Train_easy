@@ -1,1 +1,6 @@
-/models
+media/*.joblib
+*.joblib
+media/*
+*.pyc
+*.pyo
+

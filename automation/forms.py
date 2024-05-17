@@ -27,7 +27,7 @@ class MetricSelectionForm(forms.ModelForm):
 class TrainingForm(forms.ModelForm):
     class Meta:
         model = Training
-        fields = ['dataset' ,'split' ]  
+        fields = '__all__' 
         widgets = {
             'split': forms.TextInput(attrs={'placeholder': 'Enter Split Value', 'min': '0', 'max': '1', 'step': '0.01', 'type': 'number', 'required': 'required'}),
         }

@@ -3,6 +3,16 @@
 {% load static %}
 
 {% block css %}
+<!-- FontAwesome 6.2.0 CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+    integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- (Optional) Use CSS or JS implementation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/js/all.min.js"
+    integrity="sha512-naukR7I+Nk6gp7p5TMA4ycgfxaZBJ7MO5iC3Fp6ySQyKFHOGfpkSZkYVWV5R7u7cfAicxanwYQ5D1e17EfJcMA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <style>
     header {
         background-color: rgb(0, 0, 100);
@@ -27,26 +37,63 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 mx-auto">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h5 class="text-muted px-3">Training history</h5>
+                        <div class="">
+                            <ul class="list-group list-group-flush">
+
+                                {% for item in trainings %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <h5>
+                                        <i class="fas fa-graduation-cap"></i>
+                                        Training: {{item.dataset}}
+                                    </h5>
+                                    <span class="badge text-dark badge-pill">
+
+                                        {% if item.is_completed %}
+                                        <i class="fas fa-check"></i>
+                                        {% else %}
+                                        <i class="fas fa-clock"></i>
+                                        {% endif %}
+
+                                    </span>
+                                    <a href="{% url 'select_training' item.id %}" class="btn btn-primary">Select</a>
+                                </li>
+                                {% empty %}
+
+                                {% endfor %}
+
+
+                            </ul>
+                        </div>
+                        <hr>
+                        <h5 class="text-muted px-3">Uploaded Datasets</h5>
+                        <ul class="list-group list-group-flush">
+                            {% for item in my_datasets %}
+                            <!-- Some borders are removed -->
+                            <li class="list-group-item">
+                                <form method="post" class="d-flex justify-content-between align-items-center">
+                                    <h5><i class="fas fa-database"></i>{{item.name}}</h5>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="dataset_id" value="{{item.id}}">
+                                    <button type="submit" class="btn btn-primary">Select</button>
+                                </form>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">No datasets available</li>
+                            {% endfor %}
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="row my-3">
             <div class="col-md-6 mx-auto">
                 <!-- Hover added -->
 
-                <ul class="list-group list-group-flush">
-                    {% for item in my_datasets %}
-                    <!-- Some borders are removed -->
-                    <li class="list-group-item">
-                        <form method="post" class="d-flex justify-content-between align-items-center">
-                            <h5>{{item.name}}</h5>
-                            {% csrf_token %}
-                            <input type="hidden" name="dataset_id" value="{{item.id}}">
-                            <button type="submit" class="btn btn-primary">Select</button>
-                        </form>
-                    </li>
-                    {% empty %}
-                    <li class="list-group-item">No datasets available</li>
-                    {% endfor %}
-                </ul>
 
 
             </div>
