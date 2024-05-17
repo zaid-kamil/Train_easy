@@ -369,6 +369,7 @@
                 </div>
                 <div class="modal-footer">
                     <a type="button" class="btn btn-success"  href="/automation/my_models">View Models</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -410,7 +411,9 @@
                     // display the graph and result in an modal popup 
                     const img = `<img src="${data.graph}" class="img-fluid" alt="graph">`;
                     console.log(data)
-                    const content = `
+                    var content = '';
+                    if (data.results.mae) {
+                        content = `
                     <p class="lead">MAE: ${data.results.mae}</p>
                     <p class="lead">MSE: ${data.results.mse}</p>
                     <p class="lead">RMSE: ${data.results.rmse}</p>
@@ -420,6 +423,18 @@
                         <a href="/${data.best_model}" target="_blank">${data.best_model}</a>
                     </p>
                     `;
+                    } else {
+                        content = `
+                    <p class="lead">Precision: ${data.results.precision}</p>
+                    <p class="lead">Recall: ${data.results.recall}</p>
+                    <p class="lead">F1 Score: ${data.results.f1}</p>
+                    <p class="lead">Test Accuracy: ${data.results.test_accuracy}</p>
+                    <p class="lead">Train Accuracy: ${data.results.train_accuracy}</p>
+                    <p class="lead">model path: 
+                        <a href="/${data.best_model}" target="_blank">${data.best_model}</a>
+                    </p>
+                    `;
+                    }
                     document.querySelector('.modal-body').innerHTML = `<div class="container">${img}${content}</div>`;
                     submit.innerHTML = 'Train Model';
                     submit.disabled = false;
@@ -433,7 +448,6 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Something went wrong');
                 submit.innerHTML = 'Train Model';
                 submit.disabled = false;
             });

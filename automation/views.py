@@ -24,7 +24,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
+from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder, LabelEncoder
 from sklearn.decomposition import PCA
 import numpy as np
 import pandas as pd
@@ -203,7 +203,7 @@ def training(request):
             training.metric = metrics
             training.algo = algorithms
             training.preprocessing = preprocesses
-            training.save()
+            training.save() 
             request.session['current_training_id'] = training.id
             messages.success(request, 'Training started successfully')
             return redirect('finalize')
@@ -277,11 +277,11 @@ def regression_pipeline(request,df, did, pid, aid, mid, tid, target):
         
     if pptask.normalization:
         if num_cols:
-            num_trans_step.append(('scaler', StandardScaler()))
+            num_trans_step.append(('scaler', MinMaxScaler()))
     
     if pptask.encoding:
         if cat_cols:
-            cat_trans_step.append(('encoder', OrdinalEncoder()))
+            cat_trans_step.append(('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)))
     numeric_transformer, categorical_transformer = None, None
     if num_trans_step:       
         numeric_transformer = Pipeline(steps=num_trans_step)
@@ -434,7 +434,8 @@ def regression_pipeline(request,df, did, pid, aid, mid, tid, target):
     ax.set_xticklabels(labels)
     ax.legend()
     fig.tight_layout()
-    fig.savefig('assets/metrics_acc.png')
+    fig_path = f'assets/metrics_acc_{name}_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+    fig.savefig(fig_path)
 
     vis = Visualizations.objects.create(
         dataset=Dataset.objects.get(id=did),
@@ -442,27 +443,215 @@ def regression_pipeline(request,df, did, pid, aid, mid, tid, target):
         model=training,
         metric=metrics,
         algo=algos,
-        plot='assets/metrics_acc.png'
+        plot=fig_path
     )
     
     # save the model to the database
     training.training_time = time.time() - start_time
     training.training_accuracy = best_results['train_accuracy']
     training.testing_accuracy = best_results['test_accuracy']
-    training.model_path = f'media/models/{name}.joblib'
-    
+    training.model_path = f'models/{name}.joblib' or ''
+    training.is_completed = True
     training.save()
             
     return {
         'results': best_results,
         'best_model':f'/media/models/{name}.joblib',
-        'graph': '/static/metrics_acc.png',
+        'graph': fig_path.replace('assets', '/static'),
         'status': 'success',
     }
 
 # classification pipeline
-def classification_pipeline(request,df, did, pid, aid, mid, tid):
-    pass
+def classification_pipeline(request,df, did, pid, aid, mid, tid, target):
+    pptask = Preprocessing.objects.get(id=pid)  
+    algos = AlgorithmSelection.objects.get(id=aid)
+    metrics = MetricSelection.objects.get(id=mid)
+    training = Training.objects.get(id=tid)
+    # check if normalization is selected
+    
+    # create a blank pipeline
+    all_models = []
+    X, y = df.drop(target, axis=1), df[target]
+    num_cols = X.select_dtypes(include=['int', 'float']).columns.tolist()
+    cat_cols = X.select_dtypes(include=['object']).columns.tolist()
+    num_trans_step = []
+    cat_trans_step = []
+    if pptask.imputation:
+        if num_cols:
+            num_trans_step.append(('imputer', SimpleImputer(strategy='mean')))
+        if cat_cols:
+            cat_trans_step.append(('imputer', SimpleImputer(strategy='most_frequent')))
+        
+    if pptask.normalization:
+        if num_cols:
+            num_trans_step.append(('scaler', MinMaxScaler()))
+    
+    if pptask.encoding:
+        if cat_cols:
+            cat_trans_step.append(('encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)))
+    numeric_transformer, categorical_transformer = None, None
+    if num_trans_step:       
+        numeric_transformer = Pipeline(steps=num_trans_step)
+    if cat_trans_step:
+        categorical_transformer = Pipeline(steps=cat_trans_step)
+    
+    if numeric_transformer is not None and categorical_transformer is not None:
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, num_cols),
+                ('cat', categorical_transformer, cat_cols)
+            ]
+        )
+    elif numeric_transformer:
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, num_cols)
+            ]
+        )
+    elif categorical_transformer:
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('cat', categorical_transformer, cat_cols)
+            ]
+        )
+    else:
+        preprocessor = None
+    
+    
+    
+    if algos.decision_Tree:
+        steps = [('preprocessor', preprocessor)]
+        if pptask.feature_selection:
+            steps.append(('feature_selection', SelectPercentile(chi2)))
+        if pptask.pca and df.shape[1] > 3:
+            steps.append(('pca', PCA(n_components=3)))
+        decision_tree = Pipeline(steps=steps + [('classifier', DecisionTreeClassifier())])
+        all_models.append(('decision_tree', decision_tree))
+    
+    if algos.random_Forest:
+        steps = [('preprocessor', preprocessor)]
+        if pptask.feature_selection:
+            steps.append(('feature_selection', SelectPercentile(chi2)))
+        if pptask.pca and df.shape[1] > 3:
+            steps.append(('pca', PCA(n_components=3)))
+        random_forest = Pipeline(steps=steps + [('classifier', RandomForestClassifier())])
+        all_models.append(('random_forest', random_forest))
+    
+    if algos.support_Vector_Machines:
+        steps = [('preprocessor', preprocessor)]
+        if pptask.feature_selection:
+            steps.append(('feature_selection', SelectPercentile(chi2)))
+        if pptask.pca and df.shape[1] > 3:
+            steps.append(('pca', PCA(n_components=3)))
+        svm = Pipeline(steps=steps + [('classifier', SVC())])
+        all_models.append(('svm', svm))
+        
+    if algos.knn:
+        steps = [('preprocessor', preprocessor)]
+        if pptask.feature_selection:
+            steps.append(('feature_selection', SelectPercentile(chi2)))
+        if pptask.pca and df.shape[1] > 3:
+            steps.append(('pca', PCA(n_components=3)))
+        knn = Pipeline(steps=steps + [('classifier', KNeighborsClassifier())])
+        all_models.append(('knn', knn))
+        
+    if algos.naive_Bayes:
+        steps = [('preprocessor', preprocessor)]
+        if pptask.feature_selection:
+            steps.append(('feature_selection', SelectPercentile(chi2)))
+        if pptask.pca and df.shape[1] > 3:
+            steps.append(('pca', PCA(n_components=3)))
+        naive_bayes = Pipeline(steps=steps + [('classifier', GaussianNB())])
+        all_models.append(('naive_bayes', naive_bayes))
+    
+    # save the pipeline diagram to visualize
+    best_model = None
+    best_results = None
+    all_results = []
+    labels = []
+    start_time = time.time()
+    for name, model in all_models:
+        print(f'training: {name}, {model.__class__.__name__}')
+        print(f'features: {X.shape}')
+        # start time for training
+        # split the data based on the training split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=training.split, random_state=training.random_state)
+        
+        # train the model with exception handling
+        try:
+            model.fit(X_train, y_train)
+            yred =model.predict(X_test)
+            # check all the metrics selected and save the results with exception handling
+            results = {}
+            
+            if metrics.roc_auc:
+                results['train_accuracy'] = accuracy_score(y_train, model.predict(X_train)) or -1
+                results['test_accuracy'] = accuracy_score(y_test, yred) or -1
+                results['roc_auc'] = roc_auc_score(y_test, yred) or -1
+            if metrics.precision:
+                results['precision'] = precision_score(y_test, yred) or -1
+            if metrics.recall:
+                results['recall'] = recall_score(y_test, yred) or -1
+            if metrics.f1:
+                results['f1'] = f1_score(y_test, yred) or -1
+            if metrics.confusion_matrix:
+                results['confusion_matrix'] = confusion_matrix(y_test, yred).tolist() or -1
+            # check if the model is the best model
+            if not best_results or best_results['test_accuracy'] < results['test_accuracy']:
+                best_results = results
+                best_model = model
+            all_results.append(results)
+                    # save the model to the database
+            
+            html_repr = estimator_html_repr(model)
+            with open(f'assets/{name}.html', 'w', encoding='utf-8', errors='ignore') as f:
+                f.write(html_repr)
+            labels.append(name)
+        except Exception as e:
+            print(f'Error in training {name}: {e}')
+            # raise e
+            results = {'train_accuracy': -1, 'test_accuracy': -1, 'roc_auc': -1, 'precision': -1, 'recall': -1, 'f1': -1, 'confusion_matrix': -1}
+            all_results.append(results)
+    
+    # load the best model and make visualization
+    os.makedirs('media/models', exist_ok=True)
+    dump(best_model, f'media/models/{name}.joblib')
+    model = load(f'media/models/{name}.joblib')
+    
+    # confusion matrix using seaborn
+    import seaborn as sns
+    fig, ax = plt.subplots()
+    sns.heatmap(best_results['confusion_matrix'], annot=True, ax=ax)
+    fig_path = f'assets/metrics_confusion_{name}_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+    fig.savefig(fig_path)
+    
+    viz = Visualizations.objects.create(
+        dataset=Dataset.objects.get(id=did),
+        user=request.user,
+        model=training,
+        metric=metrics,
+        algo=algos,
+        plot=fig_path
+    )
+    print(f'best results: {best_results}')
+    # save the model to the database
+    training.training_time = time.time() - start_time
+    training.training_accuracy = best_results.get('roc_auc') or -1
+    training.testing_accuracy = best_results.get('test_accuracy') or 0
+    training.model_path = f'models/{name}.joblib' or ''
+    training.is_completed = True
+    training.save()
+    
+    return {
+        'results': best_results,
+        'best_model':f'/media/models/{name}.joblib',
+        'graph': fig_path.replace('assets', '/static'),
+        'status': 'success',
+    }
+    
+    
+
+    
 
 
 @csrf_exempt
@@ -484,16 +673,18 @@ def execute_pipeline(request):
             # check if the target is for classification or regression
             if df[target].dtype == 'object' or df[target].nunique() < 10 or df[target].dtype == 'bool':
                 # classification
+                print(f'executing classification: {df[target].nunique()}')
                 if df[target].nunique() > 2:
                     results = classification_pipeline(request, df, did, pid, aid, mid, tid, target)
                 else:
                     results = classification_pipeline(request, df, did, pid, aid, mid, tid, target)
             else:
+                print(f'executing regression: {df[target].nunique()}')
                 results = regression_pipeline(request, df, did, pid, aid, mid, tid, target)
             return JsonResponse(results)
         except Exception as e:
             print(e)
-            return JsonResponse({'status': 'failed', 'error': f'⚠️ No Target parameter selected/ or error in training: {e}'})        
+            return JsonResponse({'status': 'failed', 'error': f'error in training: {e}'})        
     else:
         return JsonResponse({'status': 'failed'})
     
@@ -524,7 +715,10 @@ def delete_model(request, pk):
 
 @login_required
 def download_model(request, pk):
-    model = Training.objects.get(id=pk)
-    response = HttpResponse(model.model_path, content_type='application/force-download')
-    response['Content-Disposition'] = f'attachment; filename={model.model_path}'
-    return response
+    try:
+        model = Training.objects.get(id=pk)
+        response = HttpResponse(model.model_path, content_type='application/force-download')
+        response['Content-Disposition'] = f'attachment; filename={model.model_path}'
+        return response
+    except Exception as e:
+        return redirect('my_models')
